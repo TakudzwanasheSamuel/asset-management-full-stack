@@ -1,4 +1,5 @@
 import { EmployeeList } from "@/components/employees/employee-list";
+import { EmployeeNav } from "@/components/employees/employee-nav";
 
 export default function EmployeesPage() {
     return (
@@ -9,6 +10,7 @@ export default function EmployeesPage() {
                     View and manage all employees in the organization.
                 </p>
             </div>
+            <EmployeeNav />
             <EmployeeList />
         </div>
     );

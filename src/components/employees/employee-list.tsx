@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
 
 const mockEmployees: Employee[] = [
   { id: 'emp_456', name: 'Alice Johnson', email: 'alice.j@example.com', department: 'Engineering', role: 'Software Engineer', employeeId: 'E456', status: 'Active', hireDate: new Date('2021-08-01'), createdAt: new Date(), updatedAt: new Date(), avatar: 'https://picsum.photos/100/100?random=1' },
@@ -44,15 +42,6 @@ export function EmployeeList() {
 
   return (
     <div className="space-y-4">
-        <div className="flex justify-between items-center">
-            <Input
-                placeholder="Search by name, email, or role..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-            />
-            <Button>Add Employee</Button>
-        </div>
         <div className="rounded-md border">
         <Table>
             <TableHeader>
