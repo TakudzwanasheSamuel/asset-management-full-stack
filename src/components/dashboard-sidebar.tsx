@@ -18,6 +18,7 @@ import {
   PackagePlus,
   Settings,
   LogOut,
+  ScanLine,
 } from "lucide-react";
 
 const menuItems = [
@@ -28,7 +29,12 @@ const menuItems = [
   },
   {
     href: "/admin/check-in-out",
-    label: "Check-in/Out",
+    label: "Card Scanner",
+    icon: ScanLine,
+  },
+  {
+    href: "/admin/qr-scan",
+    label: "QR Scanner",
     icon: QrCode,
   },
   {
