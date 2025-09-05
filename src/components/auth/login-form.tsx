@@ -37,18 +37,27 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     // Simulate API call
-    setTimeout(() => {
-      // In a real app, you'd handle Firebase auth here.
-      console.log(values);
-      router.push("/dashboard");
-    }, 1000);
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(values),
+        });
+        if (!response.ok) {
+            throw new Error('Login failed');
+        }
+        router.push("/admin/dashboard");
+    } catch (error) {
+        console.error(error);
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
-    <Card>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4 pt-6">
@@ -90,6 +99,5 @@ export function LoginForm() {
           </CardFooter>
         </form>
       </Form>
-    </Card>
   );
 }

@@ -22,17 +22,17 @@ import {
 
 const menuItems = [
   {
-    href: "/dashboard",
+    href: "/admin/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
   },
   {
-    href: "/check-in-out",
+    href: "/admin/check-in-out",
     label: "Check-in/Out",
     icon: QrCode,
   },
   {
-    href: "/assets/register",
+    href: "/admin/assets/register",
     label: "Register Asset",
     icon: PackagePlus,
   },
