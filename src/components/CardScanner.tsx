@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogIn, LogOut, LoaderCircle, User, XCircle } from "lucide-react";
 import { AnimatedScanner } from "./AnimatedScanner";
-import { useToast } from "./ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 type UserData = { name: string; position: string | null; imageUrl: string | null; }
 type ScanResult = { scanType: 'in' | 'out'; user: UserData; }
