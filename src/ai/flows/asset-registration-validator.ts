@@ -41,8 +41,8 @@ const assetRegistrationPrompt = ai.definePrompt({
 
   {{#if existingProperties}}
   Existing Properties:
-  {{#each (keys existingProperties)}}
-  - {{this}}: {{../existingProperties.[this]}}
+  {{#each existingProperties}}
+  - {{@key}}: {{this}}
   {{/each}}
   {{else}}
   No properties have been provided yet.
