@@ -13,6 +13,15 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "../ui/button";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AddEmployeeDialog } from "./add-employee-dialog";
 
 const mockEmployees: Employee[] = [
   { id: 'emp_456', name: 'Alice Johnson', email: 'alice.j@example.com', department: 'Engineering', role: 'Software Engineer', employeeId: 'E456', status: 'Active', hireDate: new Date('2021-08-01'), createdAt: new Date(), updatedAt: new Date(), avatar: 'https://picsum.photos/100/100?random=1' },
@@ -51,6 +60,7 @@ export function EmployeeList() {
                     <TableHead>Department</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Hire Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -74,6 +84,14 @@ export function EmployeeList() {
                   <Badge variant={getStatusBadgeVariant(employee.status)}>{employee.status}</Badge>
                 </TableCell>
                 <TableCell>{format(employee.hireDate, "PPP")}</TableCell>
+                <TableCell className="text-right">
+                    <AddEmployeeDialog employee={employee}>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </AddEmployeeDialog>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -5,6 +5,8 @@ export interface Asset {
   status: 'Available' | 'Checked Out' | 'In Repair' | 'Lost' | 'Retired' | 'Maintenance';
   assignedTo?: string; // Employee ID
   serialNumber: string;
+  manufacturer: string;
+  model: string;
   purchaseDate: Date;
   purchasePrice: number;
   location: string;
