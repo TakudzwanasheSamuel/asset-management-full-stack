@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Asset } from "@/lib/types";
 import { format } from "date-fns";
 import {
@@ -11,9 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { AssetActions } from "./asset-actions";
+import { QrCode } from "lucide-react";
 
 const mockAssets: Asset[] = [
   { id: 'asset_123', name: 'MacBook Pro 16', type: 'Laptop', status: 'Checked Out', serialNumber: 'C02G86R4Q6L4', purchaseDate: new Date('2022-01-15'), purchasePrice: 2499, location: 'HQ-101', assignedTo: 'emp_456', createdAt: new Date(), updatedAt: new Date(), manufacturer: 'Apple', model: 'A2485' },
@@ -27,12 +32,39 @@ const mockAssets: Asset[] = [
 
 export function AssetList() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
+  const router = useRouter();
+
   const filteredAssets = mockAssets.filter(
     (asset) =>
       asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedAssets(filteredAssets.map((asset) => asset.id));
+    } else {
+      setSelectedAssets([]);
+    }
+  };
+
+  const handleSelectAsset = (assetId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedAssets((prev) => [...prev, assetId]);
+    } else {
+      setSelectedAssets((prev) => prev.filter((id) => id !== assetId));
+    }
+  };
+
+  const handleGenerateLabels = () => {
+    const assetsToPrint = mockAssets
+        .filter(asset => selectedAssets.includes(asset.id))
+        .map(asset => ({ id: asset.id, name: asset.name }));
+    const assetData = JSON.stringify(assetsToPrint);
+    router.push(`/admin/assets/labels?assets=${encodeURIComponent(assetData)}`);
+  };
   
   const getStatusBadgeVariant = (status: Asset["status"]) => {
     switch (status) {
@@ -48,16 +80,31 @@ export function AssetList() {
 
   return (
     <div className="space-y-4">
-        <Input
-            placeholder="Search by name, serial, or type..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-        />
+        <div className="flex justify-between items-center">
+            <Input
+                placeholder="Search by name, serial, or type..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+            />
+            {selectedAssets.length > 0 && (
+                <Button onClick={handleGenerateLabels}>
+                    <QrCode className="mr-2 h-4 w-4" />
+                    Generate Labels ({selectedAssets.length})
+                </Button>
+            )}
+        </div>
         <div className="rounded-md border">
         <Table>
             <TableHeader>
                 <TableRow>
+                    <TableHead padding="checkbox">
+                      <Checkbox
+                        checked={selectedAssets.length > 0 && selectedAssets.length === filteredAssets.length}
+                        onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
@@ -68,7 +115,14 @@ export function AssetList() {
             </TableHeader>
             <TableBody>
                 {filteredAssets.map((asset) => (
-                <TableRow key={asset.id}>
+                <TableRow key={asset.id} data-state={selectedAssets.includes(asset.id) && "selected"}>
+                    <TableCell padding="checkbox">
+                        <Checkbox
+                            checked={selectedAssets.includes(asset.id)}
+                            onCheckedChange={(checked) => handleSelectAsset(asset.id, Boolean(checked))}
+                            aria-label={`Select asset ${asset.name}`}
+                        />
+                    </TableCell>
                     <TableCell className="font-medium">{asset.name}</TableCell>
                     <TableCell>{asset.type}</TableCell>
                     <TableCell>
