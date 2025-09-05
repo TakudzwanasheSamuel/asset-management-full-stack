@@ -18,7 +18,7 @@ export function DashboardHeader() {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-card px-4 sm:px-6 lg:px-8">
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="md:hidden" />
+        <SidebarTrigger className="hidden md:flex" />
         {/* Placeholder for breadcrumbs or page title */}
       </div>
       <DropdownMenu>
