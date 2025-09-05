@@ -19,6 +19,8 @@ import {
   Settings,
   LogOut,
   ScanLine,
+  Users,
+  Archive,
 } from "lucide-react";
 
 const menuItems = [
@@ -28,6 +30,21 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
+    href: "/admin/assets",
+    label: "Assets",
+    icon: Archive,
+  },
+  {
+    href: "/admin/employees",
+    label: "Employees",
+    icon: Users,
+  },
+  {
+    href: "/admin/assets/register",
+    label: "Register Asset",
+    icon: PackagePlus,
+  },
+    {
     href: "/admin/check-in-out",
     label: "Card Scanner",
     icon: ScanLine,
@@ -36,11 +53,6 @@ const menuItems = [
     href: "/admin/qr-scan",
     label: "QR Scanner",
     icon: QrCode,
-  },
-  {
-    href: "/admin/assets/register",
-    label: "Register Asset",
-    icon: PackagePlus,
   },
 ];
 
@@ -64,7 +76,7 @@ export function DashboardSidebar() {
               <Link href={item.href} passHref>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href) && (item.href !== '/admin/dashboard' || pathname === item.href)}
                   tooltip={item.label}
                 >
                   <span>

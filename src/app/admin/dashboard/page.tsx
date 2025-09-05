@@ -1,13 +1,8 @@
-import { StatsCard } from "@/components/dashboard/stats-card";
+import { AssetStatusDistributionChart } from "@/components/dashboard/asset-status-chart";
+import { AssetTypeDistributionChart } from "@/components/dashboard/asset-type-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import {
-  Package,
-  PackageCheck,
-  PackageX,
-  Wrench,
-  Users,
-  Clock,
-} from "lucide-react";
+import { StatsCard } from "@/components/dashboard/stats-card";
+import { Users, Clock, Package } from "lucide-react";
 
 export default function DashboardPage() {
   return (
@@ -20,45 +15,32 @@ export default function DashboardPage() {
           description="+20.1% from last month"
         />
         <StatsCard
-          title="Checked Out"
-          value="312"
-          icon={PackageX}
-          description="+180.1% from last month"
-          color="hsl(var(--destructive))"
+            title="Active Employees"
+            value="238"
+            icon={Users}
+            description="+5 since last month"
         />
         <StatsCard
-          title="Available"
-          value="890"
-          icon={PackageCheck}
-          description="+19% from last month"
-          color="hsl(142.1 76.2% 36.3%)"
+            title="Pending Returns"
+            value="12"
+            icon={Clock}
+            description="2 are overdue"
+            color="hsl(var(--destructive))"
         />
-        <StatsCard
-          title="In Maintenance"
-          value="52"
-          icon={Wrench}
-          description="+4 since last week"
-          color="hsl(var(--primary))"
+         <StatsCard
+            title="Total Value"
+            value="$1.5M"
+            icon={Package}
+            description="Estimated current value"
         />
       </div>
       <div className="grid gap-8 lg:grid-cols-3">
-         <div className="lg:col-span-2">
+         <div className="lg:col-span-2 grid gap-8">
             <RecentTransactions />
          </div>
-         <div className="space-y-4">
-            <StatsCard
-                title="Active Employees"
-                value="238"
-                icon={Users}
-                description="+5 since last month"
-            />
-            <StatsCard
-                title="Pending Returns"
-                value="12"
-                icon={Clock}
-                description="2 are overdue"
-                color="hsl(var(--destructive))"
-            />
+         <div className="space-y-8">
+            <AssetStatusDistributionChart />
+            <AssetTypeDistributionChart />
          </div>
       </div>
     </div>

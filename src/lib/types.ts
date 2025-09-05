@@ -2,7 +2,7 @@ export interface Asset {
   id: string;
   name: string;
   type: 'Laptop' | 'Monitor' | 'Keyboard' | 'Mouse' | 'Phone' | 'Tablet' | 'Other';
-  status: 'Available' | 'Checked Out' | 'Maintenance' | 'Retired';
+  status: 'Available' | 'Checked Out' | 'In Repair' | 'Lost' | 'Retired' | 'Maintenance';
   assignedTo?: string; // Employee ID
   serialNumber: string;
   purchaseDate: Date;
