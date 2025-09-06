@@ -1,6 +1,6 @@
 "use client"
 
-import { Pie, PieChart } from "recharts"
+import { Line, LineChart, CartesianGrid, XAxis, Tooltip } from "recharts"
 import {
   Card,
   CardContent,
@@ -12,22 +12,18 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent
 } from "@/components/ui/chart"
 
 const chartData = [
-  { type: "Laptops", count: 550, fill: "var(--color-laptops)" },
-  { type: "Monitors", count: 340, fill: "var(--color-monitors)" },
-  { type: "Phones", count: 190, fill: "var(--color-phones)" },
-  { type: "Tablets", count: 80, fill: "var(--color-tablets)" },
-  { type: "Other", count: 94, fill: "var(--color-other)" },
+  { month: "Jan", laptops: 480, monitors: 300, phones: 150 },
+  { month: "Feb", laptops: 500, monitors: 310, phones: 160 },
+  { month: "Mar", laptops: 510, monitors: 320, phones: 170 },
+  { month: "Apr", laptops: 530, monitors: 325, phones: 180 },
+  { month: "May", laptops: 540, monitors: 330, phones: 185 },
+  { month: "Jun", laptops: 550, monitors: 340, phones: 190 },
 ]
 
 const chartConfig = {
-  count: {
-    label: "Assets",
-  },
   laptops: {
     label: "Laptops",
     color: "hsl(var(--chart-1))",
@@ -40,45 +36,39 @@ const chartConfig = {
     label: "Phones",
     color: "hsl(var(--chart-3))",
   },
-  tablets: {
-    label: "Tablets",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
 }
 
 export function AssetTypeDistributionChart() {
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Asset Types</CardTitle>
-        <CardDescription>Distribution by asset category</CardDescription>
+    <Card>
+      <CardHeader>
+        <CardTitle>Asset Growth by Type</CardTitle>
+        <CardDescription>Number of assets by type over the last 6 months.</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+      <CardContent>
+        <ChartContainer config={chartConfig}>
+          <LineChart
+            accessibilityLayer
+            data={chartData}
+            margin={{
+              top: 5,
+              right: 20,
+              left: 10,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
             />
-            <Pie
-              data={chartData}
-              dataKey="count"
-              nameKey="type"
-              innerRadius={60}
-              strokeWidth={5}
-            />
-            <ChartLegend
-              content={<ChartLegendContent nameKey="type" />}
-              className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-            />
-          </PieChart>
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <Line dataKey="laptops" type="monotone" stroke="var(--color-laptops)" strokeWidth={2} dot={false} />
+            <Line dataKey="monitors" type="monotone" stroke="var(--color-monitors)" strokeWidth={2} dot={false} />
+            <Line dataKey="phones" type="monotone" stroke="var(--color-phones)" strokeWidth={2} dot={false} />
+          </LineChart>
         </ChartContainer>
       </CardContent>
     </Card>

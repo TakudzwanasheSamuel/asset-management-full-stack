@@ -1,12 +1,10 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Line, LineChart, CartesianGrid, XAxis, Tooltip } from "recharts"
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -17,16 +15,16 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { status: "Available", count: 890, fill: "var(--color-available)" },
-  { status: "Checked Out", count: 312, fill: "var(--color-checkedOut)" },
-  { status: "Maintenance", count: 52, fill: "var(--color-maintenance)" },
-  { status: "Retired", count: 18, fill: "var(--color-retired)" },
+  { month: "Jan", available: 520, checkedOut: 110 },
+  { month: "Feb", available: 550, checkedOut: 120 },
+  { month: "Mar", available: 570, checkedOut: 130 },
+  { month: "Apr", available: 620, checkedOut: 115 },
+  { month: "May", available: 780, checkedOut: 140 },
+  { month: "Jun", available: 890, checkedOut: 152 },
 ]
 
+
 const chartConfig = {
-  count: {
-    label: "Assets",
-  },
   available: {
     label: "Available",
     color: "hsl(var(--chart-1))",
@@ -35,40 +33,52 @@ const chartConfig = {
     label: "Checked Out",
     color: "hsl(var(--chart-2))",
   },
-  maintenance: {
-    label: "Maintenance",
-    color: "hsl(var(--chart-3))",
-  },
-  retired: {
-    label: "Retired",
-    color: "hsl(var(--chart-4))",
-  },
 }
 
 export function AssetStatusDistributionChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Asset Status</CardTitle>
-        <CardDescription>Distribution of assets by status</CardDescription>
+        <CardTitle>Asset Status Over Time</CardTitle>
+        <CardDescription>Available vs. Checked Out assets in the last 6 months.</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <LineChart
+            accessibilityLayer
+            data={chartData}
+            margin={{
+              left: 12,
+              right: 12,
+            }}
+          >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="status"
+              dataKey="month"
               tickLine={false}
-              tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 6)}
+              tickMargin={8}
+              tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent />}
             />
-            <Bar dataKey="count" radius={8} />
-          </BarChart>
+             <Line
+              dataKey="available"
+              type="monotone"
+              stroke="var(--color-available)"
+              strokeWidth={2}
+              dot={false}
+            />
+             <Line
+              dataKey="checkedOut"
+              type="monotone"
+              stroke="var(--color-checkedOut)"
+              strokeWidth={2}
+              dot={false}
+            />
+          </LineChart>
         </ChartContainer>
       </CardContent>
     </Card>

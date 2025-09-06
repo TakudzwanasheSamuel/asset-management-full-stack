@@ -34,14 +34,12 @@ export default function DashboardPage() {
             description="Estimated current value"
         />
       </div>
-      <div className="grid gap-8 lg:grid-cols-3">
-         <div className="lg:col-span-2 grid gap-8">
-            <RecentTransactions />
-         </div>
-         <div className="space-y-8">
+      <div className="space-y-8">
+        <RecentTransactions />
+        <div className="grid gap-8 md:grid-cols-2">
             <AssetStatusDistributionChart />
             <AssetTypeDistributionChart />
-         </div>
+        </div>
       </div>
     </div>
   );
