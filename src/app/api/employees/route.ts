@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import pool from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 // GET all employees with optional search
 export async function GET(request: NextRequest) {
@@ -9,11 +10,27 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search');
 
   try {
-    let query = 'SELECT id, name, email, department, role, employeeId, avatar, hireDate, status, createdAt, updatedAt FROM employees';
-    const params: (string | number)[] = [];
+    // Get session cookie and decode company_id
+    const session = request.cookies.get('session');
+    if (!session) {
+      return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
+    }
+    let payload: string | jwt.JwtPayload | undefined;
+    try {
+      payload = jwt.verify(session.value, process.env.JWT_SECRET!);
+    } catch (err) {
+      return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
+    }
+    if (!payload || typeof payload === 'string' || !('company_id' in payload)) {
+      return NextResponse.json({ message: 'Invalid session payload' }, { status: 401 });
+    }
+    const companyId = (payload as jwt.JwtPayload).company_id;
+
+    let query = 'SELECT id, name, email, department, role, employeeId, avatar, hireDate, status, createdAt, updatedAt FROM employees WHERE company_id = ?';
+    const params: (string | number)[] = [companyId];
 
     if (search) {
-      query += ' WHERE name LIKE ? OR role LIKE ?';
+      query += ' AND (name LIKE ? OR role LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
     }
 
@@ -29,18 +46,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password, department, role, employeeId, avatar, hireDate, status } = body;
+    const { name, email, password, department, role, employeeId, avatar, hireDate, status, company_id } = body;
 
-    if (!name || !email || !password) {
-      return NextResponse.json({ message: 'Name, email, and password are required' }, { status: 400 });
+    if (!name || !email || !password || !company_id) {
+      return NextResponse.json({ message: 'Name, email, password, and company_id are required' }, { status: 400 });
     }
 
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const [result] = await pool.query(
-      'INSERT INTO employees (name, email, password, department, role, employeeId, avatar, hireDate, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [name, email, hashedPassword, department, role, employeeId, avatar, hireDate, status]
+      'INSERT INTO employees (name, email, password, department, role, employeeId, avatar, hireDate, status, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, email, hashedPassword, department, role, employeeId, avatar, hireDate, status, company_id]
     );
 
     const insertId = (result as any).insertId;

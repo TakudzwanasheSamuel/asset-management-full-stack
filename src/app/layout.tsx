@@ -4,8 +4,8 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Attendance Scanner',
-  description: 'A modern attendance tracking system.',
+  title: 'AssetLogix',
+  description: 'A modern asset management system.',
 };
 
 export default function RootLayout({
@@ -19,6 +19,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className="font-body antialiased">
         <ThemeProvider

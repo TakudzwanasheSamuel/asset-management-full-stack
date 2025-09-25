@@ -1,244 +1,172 @@
-"use client";
 
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { format } from 'date-fns';
-import type { Asset } from "@/lib/types";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+
+import React from "react";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "../ui/textarea";
-import { Wand2, Loader2 } from "lucide-react";
-import { validateAssetRegistration } from "@/ai/flows/asset-registration-validator";
-import { useToast } from "@/hooks/use-toast";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 
-const formSchema = z.object({
-  name: z.string().min(3, "Asset name is required"),
-  type: z.enum([
-    "Laptop",
-    "Monitor",
-    "Keyboard",
-    "Mouse",
-    "Phone",
-    "Tablet",
-    "Other",
-  ]),
-  serialNumber: z.string().optional(),
-  model: z.string().optional(),
-  manufacturer: z.string().optional(),
-  purchaseDate: z.string().optional(),
-  purchasePrice: z.coerce.number().optional(),
-  location: z.string().optional(),
-  description: z.string().optional(),
-});
-
-type RegistrationFormValues = z.infer<typeof formSchema>;
-
-interface RegistrationFormProps {
-  asset?: Asset;
+type RegistrationFormProps = {
+  asset?: any;
   onSuccess?: () => void;
-  isDialog?: boolean;
-}
+  isEditMode?: boolean;
+  isSubmitting?: boolean;
+  form: any;
+  onSubmit: any;
+};
 
-export function RegistrationForm({ asset, onSuccess, isDialog = false }: RegistrationFormProps) {
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-  const isEditMode = !!asset;
+// Dummy data for illustration
+const ASSET_TYPES = ["Laptop", "Desktop", "Monitor", "Phone", "Tablet"];
+const STATUS_OPTIONS = ["Available"];
+const employees = [
+  { id: "1", name: "John Doe" },
+  { id: "2", name: "Jane Smith" },
+];
 
-  const form = useForm<RegistrationFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: asset?.name ?? "",
-      type: asset?.type ?? "Other",
-      serialNumber: asset?.serialNumber ?? "",
-      model: asset?.model ?? "",
-      manufacturer: asset?.manufacturer ?? "",
-      purchaseDate: asset?.purchaseDate ? format(asset.purchaseDate, 'yyyy-MM-dd') : "",
-      purchasePrice: asset?.purchasePrice ?? undefined,
-      location: asset?.location ?? "",
-      description: asset?.description ?? "",
-    },
-  });
+import { useForm } from "react-hook-form";
 
-  const handleSuggest = async () => {
-    const assetName = form.getValues("name");
-    if (!assetName || assetName.length < 3) {
-      form.trigger("name");
-      return;
+export function RegistrationForm({ asset, onSuccess, isEditMode = false, isSubmitting = false, form, onSubmit }: RegistrationFormProps) {
+  // Provide default form and onSubmit if not passed
+  const internalForm = useForm({ 
+    defaultValues: { 
+      name: "", 
+      type: "", 
+      status: "", 
+      assignedTo: "unassigned", 
+      manufacturer: "", model: "", serialNumber: "", purchaseDate: "", purchasePrice: "", nfcId: "", rfid: "", description: "" } });
+  const handleSubmit = (data: any) => {
+    if (onSubmit) {
+      return onSubmit(data);
     }
-
-    setIsAiLoading(true);
-    try {
-      const result = await validateAssetRegistration({ assetName });
-      const suggestions = result.suggestedProperties;
-      
-      if (suggestions) {
-        if (suggestions.model) form.setValue("model", suggestions.model);
-        if (suggestions.manufacturer) form.setValue("manufacturer", suggestions.manufacturer);
-        if (suggestions.type && formSchema.shape.type.options.includes(suggestions.type as any)) {
-            form.setValue("type", suggestions.type as any);
-        }
-        toast({ title: "AI Suggestions Applied", description: "We've filled in some details for you." });
-      } else {
-        toast({ title: "No suggestions found", variant: "destructive" });
-      }
-    } catch (error) {
-      console.error(error);
-      toast({ title: "AI Error", description: "Could not fetch AI suggestions.", variant: "destructive" });
-    } finally {
-      setIsAiLoading(false);
-    }
+    // Default form submission logic here
+    console.log('Form submitted:', data);
   };
   
-  const onSubmit = (values: RegistrationFormValues) => {
-    setIsSubmitting(true);
-    console.log(values);
-    setTimeout(() => {
-        setIsSubmitting(false);
-        toast({
-            title: isEditMode ? "Asset Updated" : "Asset Registered",
-            description: `${values.name} has been ${isEditMode ? 'updated' : 'added to the inventory'}.`
-        });
-        if (onSuccess) {
-            onSuccess();
-        } else {
-            form.reset();
-        }
-    }, 1500)
-  };
-
-  const formContent = (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <CardContent className="space-y-6 !pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-              <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                  <FormItem className="flex-1">
-                  <FormLabel>Asset Name</FormLabel>
-                  <FormControl>
-                      <Input placeholder="e.g., MacBook Pro 16 M2" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  </FormItem>
-              )}
-              />
-              <div className="self-end">
-                  <Button type="button" variant="outline" onClick={handleSuggest} disabled={isAiLoading}>
-                      {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4" />}
-                      Suggest with AI
-                  </Button>
-              </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Asset Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                          <SelectTrigger>
-                              <SelectValue placeholder="Select an asset type" />
-                          </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                          {formSchema.shape.type.options.map(type => (
-                              <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
-                          </SelectContent>
-                      </Select>
-                      <FormMessage />
-                      </FormItem>
-                  )}
-                  />
-              <FormField control={form.control} name="manufacturer" render={({ field }) => (
-                  <FormItem><FormLabel>Manufacturer</FormLabel><FormControl><Input placeholder="e.g., Apple" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="model" render={({ field }) => (
-                  <FormItem><FormLabel>Model</FormLabel><FormControl><Input placeholder="e.g., A2780" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="serialNumber" render={({ field }) => (
-                  <FormItem><FormLabel>Serial Number</FormLabel><FormControl><Input placeholder="C02G86R4Q6L4" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-               <FormField control={form.control} name="purchaseDate" render={({ field }) => (
-                  <FormItem><FormLabel>Purchase Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="purchasePrice" render={({ field }) => (
-                  <FormItem><FormLabel>Purchase Price ($)</FormLabel><FormControl><Input type="number" placeholder="2499.00" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-          </div>
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Any additional details about the asset..."
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isEditMode ? "Save Changes" : "Register Asset"}
-          </Button>
-        </CardFooter>
-      </form>
-    </Form>
-  )
-
-  if (isDialog) {
-    return formContent;
-  }
+  const usedForm = form || internalForm;
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>Asset Details</CardTitle>
-        <CardDescription>
-          Fill in the details of the new asset.
-        </CardDescription>
-      </CardHeader>
-      {formContent}
-    </Card>
+    <Form {...usedForm}>
+      <form onSubmit={usedForm.handleSubmit(handleSubmit)}>
+        <CardContent className="space-y-6 !pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FormField control={usedForm.control} name="name" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Asset Name <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input placeholder="e.g., MacBook Pro 16 M2" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="type" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Asset Type <span className="text-destructive">*</span></FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Select asset type" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {ASSET_TYPES.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="status" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status <span className="text-destructive">*</span></FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="assignedTo" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Assigned To <span className="text-muted-foreground">(optional)</span></FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Select employee" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {employees.map(emp => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="manufacturer" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Manufacturer <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input placeholder="e.g., Apple" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="model" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input placeholder="e.g., A2780" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="serialNumber" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Serial Number <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input placeholder="C02G86R4Q6L4" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="purchaseDate" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Purchase Date <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input type="date" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="purchasePrice" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Purchase Price ($) <span className="text-destructive">*</span></FormLabel>
+                <FormControl><Input type="number" placeholder="2499.00" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="nfcId" render={({ field }) => (
+              <FormItem>
+                <FormLabel>NFC ID <span className="text-muted-foreground">(optional)</span></FormLabel>
+                <FormControl><Input placeholder="NFC sticker/tag ID" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={usedForm.control} name="rfid" render={({ field }) => (
+              <FormItem>
+                <FormLabel>RFID Tag <span className="text-muted-foreground">(optional)</span></FormLabel>
+                <FormControl><Input placeholder="RFID tag value" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+          <FormField control={usedForm.control} name="description" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description <span className="text-destructive">*</span></FormLabel>
+              <FormControl>
+                <Textarea placeholder="Any additional details about the asset..." className="resize-none" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <CardFooter className="flex justify-end">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isEditMode ? "Save Changes" : "Register Asset"}
+            </Button>
+          </CardFooter>
+        </CardContent>
+      </form>
+    </Form>
   );
 }

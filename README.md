@@ -1,14 +1,14 @@
 # Asset Management System
 
-This is a comprehensive Asset Management System built with Next.js and Firebase. It provides a full suite of tools for tracking, managing, and auditing company assets and employees in a modern, easy-to-use interface. The application features AI-powered assistance to streamline workflows and a responsive design that works on any device.
+This is a comprehensive, multi-organization Asset Management System built with Next.js (App Router) and a MySQL backend. It provides a full suite of tools for tracking, managing, and auditing company assets and employees in a modern, easy-to-use interface. The application is designed for resilience and features a responsive design that works on any device.
 
 ## Tech Stack
 
 - **Framework:** [Next.js](https://nextjs.org/) (using the App Router)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Database:** [MySQL](https://www.mysql.com/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [shadcn/ui](https://ui.shadcn.com/)
-- **Generative AI:** [Google's Genkit](https://firebase.google.com/docs/genkit)
 - **Charts & Visualization:** [Recharts](https://recharts.org/)
 
 ## Features
@@ -26,26 +26,21 @@ A central hub providing a high-level overview of the system's status.
 
 ### 3. Comprehensive Asset Management
 - **Asset Inventory (`/admin/assets`):**
-  - A searchable and filterable table of all assets.
-  - Displays key information like name, type, status, serial number, and purchase date.
+  - A searchable and filterable table of all company assets.
+  - Displays key information like name, status, assigned employee, and location.
 - **Asset Registration (`/admin/assets/register`):**
   - A user-friendly form to add new assets to the inventory.
-  - **AI-Powered Suggestions:** An integrated AI tool suggests asset properties (like manufacturer or type) based on the asset name, speeding up data entry.
+  - Supports adding NFC/RFID tag IDs for scanner integration.
 - **Edit and Delete Workflows:** Fully implemented UI modals for editing asset details and confirming deletions.
-- **QR Code Label Generator (`/admin/assets/labels`):**
-  - Select multiple assets from the inventory list to generate printable QR code labels.
-  - The generated page is optimized for printing.
 
 ### 4. Employee Directory (`/admin/employees`)
 - A complete list of all employees, with their role, department, and current status.
 - Includes a search bar to quickly find employees.
 - Features "Add Employee" and "Edit Employee" modals with a complete UI.
 
-### 5. Scanning & Transactions
-- **Card Scanner (`/` and `/admin/check-in-out`):** A dedicated, full-screen interface designed for kiosk-style ID card scanning to quickly check items in or out.
-- **QR Code Scanner (`/admin/qr-scan`):**
-  - A page for scanning asset QR codes to record transactions.
-  - Includes a fallback manual entry form.
+### 5. NFC/RFID Scanning & Transactions
+- **Card Scanner (`/`):** A dedicated, full-screen interface designed for kiosk-style NFC or RFID card scanning to quickly look up assets.
+- **Check-in/Check-out:** The system is built to support check-in and check-out flows tied to asset and employee data.
 
 ## Running the Application Locally
 

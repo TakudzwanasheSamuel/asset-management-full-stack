@@ -71,12 +71,4 @@ body {
   }
 }
 
-@layer utilities {
-  @keyframes scan {
-    '0%' { top: '15%' }
-    '100%' { top: '80%' }
-  }
-  .animate-scan {
-    animation: scan 2.5s ease-in-out infinite alternate;
-  }
-}
+

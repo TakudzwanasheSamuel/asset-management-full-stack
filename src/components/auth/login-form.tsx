@@ -28,6 +28,8 @@ const formSchema = z.object({
 export function LoginForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,21 +41,23 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    // Simulate API call
+    setError(null);
     try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(values),
-        });
-        if (!response.ok) {
-            throw new Error('Login failed');
-        }
-        router.push("/admin/dashboard");
-    } catch (error) {
-        console.error(error);
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        // Show server error message if available
+        throw new Error(data?.error || 'Login failed. Please check your credentials and try again.');
+      }
+      router.push("/admin/dashboard");
+    } catch (error: any) {
+      setError(error.message || 'An unexpected error occurred. Please try again.');
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -61,6 +65,11 @@ export function LoginForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4 pt-6">
+            {error && (
+              <div className="text-red-500 text-sm text-center mb-2" role="alert">
+                {error}
+              </div>
+            )}
             <FormField
               control={form.control}
               name="email"
@@ -79,12 +88,23 @@ export function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <div className="flex justify-between">
-                    <FormLabel>Password</FormLabel>
-                    <Button variant="link" type="button" className="h-auto p-0 text-sm">Forgot password?</Button>
-                  </div>
+                  <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs"
+                        onClick={() => setShowPassword((v) => !v)}
+                      >
+                        {showPassword ? "Hide" : "Show"}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -96,6 +116,7 @@ export function LoginForm() {
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign In
             </Button>
+            <Button variant="link" type="button" className="h-auto p-0 text-sm self-center mt-2">Forgot password?</Button>
           </CardFooter>
         </form>
       </Form>

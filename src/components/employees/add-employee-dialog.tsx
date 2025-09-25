@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -55,8 +56,18 @@ interface AddEmployeeDialogProps {
 export function AddEmployeeDialog({ employee, children }: AddEmployeeDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const { toast } = useToast();
   const isEditMode = !!employee;
+
+  useEffect(() => {
+    // Fetch current user's company_id
+    fetch("/api/employees/me")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data && data.company_id) setCompanyId(data.company_id);
+      });
+  }, []);
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(formSchema),
@@ -71,18 +82,38 @@ export function AddEmployeeDialog({ employee, children }: AddEmployeeDialogProps
     },
   });
 
-  const onSubmit = (values: EmployeeFormValues) => {
+  const onSubmit = async (values: EmployeeFormValues) => {
     setIsSubmitting(true);
-    console.log(values);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const payload = {
+        ...values,
+        hireDate: values.hireDate,
+        company_id: companyId,
+        password: "changeme123" // TODO: prompt for password or generate
+      };
+      const res = await fetch("/api/employees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        let errorMsg = result?.message || "Failed to add employee";
+        if (res.status === 409) errorMsg = "Email or Employee ID already exists.";
+        toast({ title: "Error", description: errorMsg, variant: "destructive" });
+        return;
+      }
       toast({
         title: isEditMode ? "Employee Updated" : "Employee Added",
         description: `${values.name} has been ${isEditMode ? 'updated' : 'added to the directory'}.`,
       });
       setOpen(false);
       form.reset();
-    }, 1500);
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

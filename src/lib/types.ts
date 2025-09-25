@@ -4,6 +4,10 @@ export interface Asset {
   type: 'Laptop' | 'Monitor' | 'Keyboard' | 'Mouse' | 'Phone' | 'Tablet' | 'Other';
   status: 'Available' | 'Checked Out' | 'In Repair' | 'Lost' | 'Retired' | 'Maintenance';
   assignedTo?: string; // Employee ID
+  nfcId?: string | null;
+  rfid?: string | null;
+  location_id?: number | null;
+  locationName?: string | null;
   serialNumber: string;
   manufacturer: string;
   model: string;
@@ -11,7 +15,7 @@ export interface Asset {
   purchasePrice: number;
   location: string;
   description?: string;
-  imageUrl?: string;
+  // imageUrl removed; attachments are not used
   createdAt: Date;
   updatedAt: Date;
 }

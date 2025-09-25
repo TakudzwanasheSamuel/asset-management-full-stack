@@ -36,12 +36,23 @@ export function AssetActions({ asset }: { asset: Asset }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleDelete = () => {
-    console.log(`Deleting asset ${asset.id}`);
-    toast({
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/assets/${asset.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete asset");
+      toast({
         title: "Asset Deleted",
         description: `${asset.name} has been removed from the inventory.`,
-    });
+      });
+      // Optionally refresh asset list
+      window.location.reload();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Could not delete asset.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -81,6 +92,8 @@ export function AssetActions({ asset }: { asset: Asset }) {
             <RegistrationForm
               asset={asset}
               onSuccess={() => setIsEditDialogOpen(false)}
+              form={{ control: {}, handleSubmit: (fn: any) => fn }}
+              onSubmit={() => {}}
             />
           </DialogContent>
         </Dialog>

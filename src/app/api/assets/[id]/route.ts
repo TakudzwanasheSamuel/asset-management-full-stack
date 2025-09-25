@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await request.json();
-    const { name, type, status, assignedTo, serialNumber, manufacturer, model, purchaseDate, purchasePrice, location, description, imageUrl } = body;
+  const { name, type, status, assignedTo, serialNumber, manufacturer, model, purchaseDate, purchasePrice, location, description } = body;
 
     const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM assets WHERE id = ?', [params.id]);
 
@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (purchasePrice) updates.purchasePrice = purchasePrice;
     if (location) updates.location = location;
     if (description) updates.description = description;
-    if (imageUrl) updates.imageUrl = imageUrl;
+  // imageUrl removed
 
     if (Object.keys(updates).length === 0) {
         return NextResponse.json({ message: 'No fields to update' }, { status: 400 });
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     await pool.query('UPDATE assets SET ? WHERE id = ?', [updates, params.id]);
 
-    const [updatedRows] = await pool.query<RowD ataPacket[]>('SELECT * FROM assets WHERE id = ?', [params.id]);
+  const [updatedRows] = await pool.query<RowDataPacket[]>('SELECT * FROM assets WHERE id = ?', [params.id]);
 
     return NextResponse.json(updatedRows[0]);
   } catch (error) {
@@ -69,11 +69,30 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 // DELETE an asset
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const [result] = await pool.query('DELETE FROM assets WHERE id = ?', [params.id]);
+    // Get asset info before deleting for audit log
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM assets WHERE id = ?', [params.id]);
+    if (rows.length === 0) {
+      return NextResponse.json({ message: 'Asset not found' }, { status: 404 });
+    }
+    const asset = rows[0];
 
+    // Delete asset
+    const [result] = await pool.query('DELETE FROM assets WHERE id = ?', [params.id]);
     if ((result as any).affectedRows === 0) {
       return NextResponse.json({ message: 'Asset not found' }, { status: 404 });
     }
+
+    // Insert audit log (assuming audit_logs table exists)
+    // You may need to adjust this to match your audit log schema
+    await pool.query(
+      'INSERT INTO audit_logs (action, entity, entity_id, details, created_at) VALUES (?, ?, ?, ?, NOW())',
+      [
+        'delete',
+        'asset',
+        asset.id,
+        JSON.stringify({ name: asset.name, serialNumber: asset.serialNumber })
+      ]
+    );
 
     return NextResponse.json({ message: 'Asset deleted successfully' }, { status: 200 });
   } catch (error) {

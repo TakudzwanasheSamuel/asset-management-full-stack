@@ -1,3 +1,4 @@
+"use client";
 import { RegistrationForm } from "@/components/assets/registration-form";
 
 export default function RegisterAssetPage() {
@@ -6,7 +7,7 @@ export default function RegisterAssetPage() {
             <div className="mb-6">
                 <h1 className="text-3xl font-bold tracking-tight">Register New Asset</h1>
                 <p className="text-muted-foreground">
-                    Add a new asset to the inventory. Use our AI tool to suggest missing details.
+                    Add a new asset to the inventory.
                 </p>
             </div>
             <RegistrationForm />

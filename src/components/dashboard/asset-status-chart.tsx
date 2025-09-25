@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Line, LineChart, CartesianGrid, XAxis, Tooltip } from "recharts"
 import {
   Card,
@@ -14,16 +15,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 
-const chartData = [
-  { month: "Jan", available: 520, checkedOut: 110 },
-  { month: "Feb", available: 550, checkedOut: 120 },
-  { month: "Mar", available: 570, checkedOut: 130 },
-  { month: "Apr", available: 620, checkedOut: 115 },
-  { month: "May", available: 780, checkedOut: 140 },
-  { month: "Jun", available: 890, checkedOut: 152 },
-]
-
-
 const chartConfig = {
   available: {
     label: "Available",
@@ -36,11 +27,35 @@ const chartConfig = {
 }
 
 export function AssetStatusDistributionChart() {
+  const [chartData, setChartData] = useState<any[]>([])
+  const [companyId, setCompanyId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/employees/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (user && user.company_id) {
+          setCompanyId(user.company_id)
+        }
+      })
+  }, [])
+
+  useEffect(() => {
+    if (!companyId) return
+    fetch(`/api/charts/asset-status-over-time?company_id=${companyId}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        setChartData(data)
+      })
+  }, [companyId])
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Asset Status Over Time</CardTitle>
-        <CardDescription>Available vs. Checked Out assets in the last 6 months.</CardDescription>
+        <CardDescription>
+          Available vs. Checked Out assets in the last 6 months.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -60,18 +75,15 @@ export function AssetStatusDistributionChart() {
               tickMargin={8}
               tickFormatter={(value) => value.slice(0, 3)}
             />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent />}
-            />
-             <Line
+            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <Line
               dataKey="available"
               type="monotone"
               stroke="var(--color-available)"
               strokeWidth={2}
               dot={false}
             />
-             <Line
+            <Line
               dataKey="checkedOut"
               type="monotone"
               stroke="var(--color-checkedOut)"

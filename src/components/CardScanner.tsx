@@ -8,8 +8,9 @@ import { LogIn, LogOut, LoaderCircle, User, XCircle } from "lucide-react";
 import { AnimatedScanner } from "./AnimatedScanner";
 import { useToast } from "@/hooks/use-toast";
 
-type UserData = { name: string; position: string | null; imageUrl: string | null; }
-type ScanResult = { scanType: 'in' | 'out'; user: UserData; }
+type UserData = { name: string; position: string | null }
+type AssetScan = { id: number; name: string; status: string; assignedTo: number | null; assignedName: string | null } | null;
+type ScanResult = { scanType?: 'in' | 'out'; user?: UserData; asset?: AssetScan };
 type Status = "idle" | "loading" | "success" | "error";
 
 export function CardScanner() {
@@ -41,9 +42,16 @@ export function CardScanner() {
             body: JSON.stringify({ cardId }),
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.message);
-        setStatus("success");
-        setScanResult(result);
+  if (!response.ok) {
+    // API returns { message, asset: null } with 404
+    setStatus('error');
+    setScanResult(result);
+    throw new Error(result.message);
+  }
+
+  // success: result may contain asset or user
+  setStatus("success");
+  setScanResult({ asset: result.asset ?? null, user: result.user ?? undefined, scanType: result.scanType });
     } catch (error) {
         setStatus("error");
         const message = error instanceof Error ? error.message : "An unexpected error occurred.";
@@ -55,54 +63,106 @@ export function CardScanner() {
   };
 
   const renderStatusIcon = () => {
-      if (!scanResult) return null;
-      const Icon = scanResult.scanType === 'in' ? LogIn : LogOut;
-      const text = scanResult.scanType === 'in' ? 'Clocked In' : 'Clocked Out';
-      const color = scanResult.scanType === 'in' ? 'text-green-600 dark:text-green-400 bg-green-500/10' : 'text-blue-600 dark:text-blue-400 bg-blue-500/10';
+    if (!scanResult) return null;
+    if (scanResult.asset) {
       return (
-        <div className={`mt-4 flex items-center gap-2 px-4 py-2 rounded-full ${color}`}>
-            <Icon className="h-5 w-5" />
-            <p className="font-medium">{text}</p>
+        <div className="mt-4 flex flex-col items-center gap-1">
+          <div className="px-4 py-2 rounded-full bg-muted text-muted-foreground">
+            <p className="font-medium">Asset: {scanResult.asset.name}</p>
+            {scanResult.asset.assignedName && (
+              <p className="text-sm text-muted-foreground">Assigned to: {scanResult.asset.assignedName}</p>
+            )}
+          </div>
         </div>
       );
+    }
+
+    // If asset is explicitly null, show not recognized message
+    if (scanResult.asset === null) {
+      return (
+        <div className="mt-4 px-4 py-2 rounded-full bg-red-50 text-red-700">
+          <p className="font-medium">Tag not recognized</p>
+          <p className="text-sm text-muted-foreground">No asset matched this NFC/RFID tag.</p>
+        </div>
+      );
+    }
+
+    const Icon = scanResult.scanType === 'in' ? LogIn : LogOut;
+    const text = scanResult.scanType === 'in' ? 'Clocked In' : 'Clocked Out';
+    const color = scanResult.scanType === 'in' ? 'text-green-600 dark:text-green-400 bg-green-500/10' : 'text-blue-600 dark:text-blue-400 bg-blue-500/10';
+    return (
+      <div className={`mt-4 flex items-center gap-2 px-4 py-2 rounded-full ${color}`}>
+        <Icon className="h-5 w-5" />
+        <p className="font-medium">{text}</p>
+      </div>
+    );
   };
 
   return (
     <Card className="w-full max-w-md shadow-lg min-h-[380px] flex items-center justify-center p-4">
       <div className="w-full text-center">
-        {status === 'idle' && (
-          <div className="animate-in fade-in-50">
-            <CardHeader>
-              <AnimatedScanner className="w-16 h-16 mx-auto mb-2" />
-              <CardTitle className="text-2xl font-bold">Scan Your Card</CardTitle>
-              <CardDescription>The system is ready for the next scan.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit}>
-                <Input ref={inputRef} type="password" value={cardId} onChange={(e) => setCardId(e.target.value)} className="absolute -left-full" autoFocus />
-                <div className="h-14 bg-secondary/50 rounded-md flex items-center justify-center text-xl font-mono tracking-widest text-muted-foreground border-2 border-dashed">
-                  {cardId ? '*'.repeat(cardId.length) : 'Waiting for scan...'}
-                </div>
-              </form>
-            </CardContent>
-          </div>
-        )}
-        {status === 'loading' && <LoaderCircle className="w-16 h-16 text-primary animate-spin" />}
-        {status === 'success' && scanResult?.user && (
-          <div className="flex flex-col items-center justify-center animate-in fade-in-50">
-            <Avatar className="w-24 h-24 mb-4 border-4 border-green-500"><AvatarImage src={scanResult.user.imageUrl || ''} /><AvatarFallback><User className="w-12 h-12" /></AvatarFallback></Avatar>
-            <h3 className="text-3xl font-bold">{scanResult.user.name}</h3>
-            <p className="text-xl text-muted-foreground">{scanResult.user.position}</p>
-            {renderStatusIcon()}
-          </div>
-        )}
-        {status === 'error' && (
-          <div className="flex flex-col items-center justify-center animate-in fade-in-50">
-            <div className="w-24 h-24 mb-4 rounded-full bg-destructive/10 flex items-center justify-center border-4 border-destructive"><XCircle className="w-12 h-12 text-destructive" /></div>
-            <h3 className="text-3xl font-bold">Error</h3>
-            <div className="mt-4 flex items-center gap-2 text-red-600 dark:text-red-400 bg-red-500/10 px-4 py-2 rounded-full"><p className="font-medium">{feedbackMessage}</p></div>
-          </div>
-        )}
+        <CardHeader>
+          <AnimatedScanner className="w-16 h-16 mx-auto mb-2" />
+          <CardTitle className="text-2xl font-bold">Scan Your Card</CardTitle>
+          <CardDescription>The system is ready for the next scan.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <Input
+              ref={inputRef}
+              type="password"
+              value={cardId}
+              onChange={(e) => setCardId(e.target.value)}
+              className="w-full text-center text-xl font-mono tracking-widest mb-2"
+              autoFocus
+              placeholder="Scan here"
+              disabled={status === 'loading'}
+            />
+            {status === 'loading' && <LoaderCircle className="w-8 h-8 text-primary animate-spin mx-auto mt-2" />}
+            {status === 'error' && (
+              <div className="mt-2 flex items-center gap-2 text-red-600 dark:text-red-400 bg-red-500/10 px-4 py-2 rounded-full justify-center">
+                <XCircle className="w-5 h-5" />
+                <span className="font-medium">{feedbackMessage}</span>
+              </div>
+            )}
+            {status === 'success' && (
+              <div className="flex flex-col items-center justify-center animate-in fade-in-50 mt-4">
+                {/* if we have user info, show it */}
+                {scanResult?.user ? (
+                  <>
+                    <Avatar className="w-24 h-24 mb-4 border-4 border-green-500">
+                      <AvatarFallback><User className="w-12 h-12" /></AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-3xl font-bold">{scanResult.user.name}</h3>
+                    <p className="text-xl text-muted-foreground">{scanResult.user.position}</p>
+                  </>
+                ) : null}
+
+                {/* if we have an asset, show asset info */}
+                {scanResult?.asset ? (
+                  <div className="mt-4">
+                    <div className="px-4 py-2 rounded-full bg-muted text-muted-foreground">
+                      <p className="font-medium">Asset: {scanResult.asset.name}</p>
+                      {scanResult.asset.assignedName && (
+                        <p className="text-sm text-muted-foreground">Assigned to: {scanResult.asset.assignedName}</p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* if asset explicitly null and no user, show not recognized */}
+                {scanResult?.asset === null && !scanResult?.user ? (
+                  <div className="mt-4 px-4 py-2 rounded-full bg-red-50 text-red-700">
+                    <p className="font-medium">Tag not recognized</p>
+                    <p className="text-sm text-muted-foreground">No asset matched this NFC/RFID tag.</p>
+                  </div>
+                ) : null}
+
+                {renderStatusIcon()}
+              </div>
+            )}
+          </form>
+        </CardContent>
       </div>
     </Card>
   );

@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Line, LineChart, CartesianGrid, XAxis, Tooltip } from "recharts"
 import {
   Card,
@@ -13,15 +14,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-
-const chartData = [
-  { month: "Jan", laptops: 480, monitors: 300, phones: 150 },
-  { month: "Feb", laptops: 500, monitors: 310, phones: 160 },
-  { month: "Mar", laptops: 510, monitors: 320, phones: 170 },
-  { month: "Apr", laptops: 530, monitors: 325, phones: 180 },
-  { month: "May", laptops: 540, monitors: 330, phones: 185 },
-  { month: "Jun", laptops: 550, monitors: 340, phones: 190 },
-]
 
 const chartConfig = {
   laptops: {
@@ -39,11 +31,35 @@ const chartConfig = {
 }
 
 export function AssetTypeDistributionChart() {
+  const [chartData, setChartData] = useState<any[]>([])
+  const [companyId, setCompanyId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/employees/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (user && user.company_id) {
+          setCompanyId(user.company_id)
+        }
+      })
+  }, [])
+
+  useEffect(() => {
+    if (!companyId) return
+    fetch(`/api/charts/asset-growth-by-type?company_id=${companyId}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        setChartData(data)
+      })
+  }, [companyId])
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Asset Growth by Type</CardTitle>
-        <CardDescription>Number of assets by type over the last 6 months.</CardDescription>
+        <CardDescription>
+          Number of assets by type over the last 6 months.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -65,9 +81,27 @@ export function AssetTypeDistributionChart() {
               tickMargin={8}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Line dataKey="laptops" type="monotone" stroke="var(--color-laptops)" strokeWidth={2} dot={false} />
-            <Line dataKey="monitors" type="monotone" stroke="var(--color-monitors)" strokeWidth={2} dot={false} />
-            <Line dataKey="phones" type="monotone" stroke="var(--color-phones)" strokeWidth={2} dot={false} />
+            <Line
+              dataKey="laptops"
+              type="monotone"
+              stroke="var(--color-laptops)"
+              strokeWidth={2}
+              dot={false}
+            />
+            <Line
+              dataKey="monitors"
+              type="monotone"
+              stroke="var(--color-monitors)"
+              strokeWidth={2}
+              dot={false}
+            />
+            <Line
+              dataKey="phones"
+              type="monotone"
+              stroke="var(--color-phones)"
+              strokeWidth={2}
+              dot={false}
+            />
           </LineChart>
         </ChartContainer>
       </CardContent>

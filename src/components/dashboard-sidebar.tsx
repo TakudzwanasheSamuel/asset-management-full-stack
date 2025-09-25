@@ -49,11 +49,11 @@ const menuItems = [
     label: "Card Scanner",
     icon: ScanLine,
   },
-  {
-    href: "/admin/qr-scan",
-    label: "QR Scanner",
-    icon: QrCode,
-  },
+  // {
+  //   href: "/admin/qr-scan",
+  //   label: "QR Scanner",
+  //   icon: QrCode,
+  // },
 ];
 
 export function DashboardSidebar() {
@@ -63,11 +63,12 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarHeader className="border-b border-sidebar-border">
-          <div className="flex items-center gap-2 p-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Package className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-lg">EquiTrack</span>
+          <div className="flex flex-col items-center gap-2 p-2">
+            <img
+              src="/AssetLogix-logo.png"
+              alt="AssetLogix Logo"
+              className="w-16 h-16 object-contain mb-2"
+            />
           </div>
         </SidebarHeader>
         <SidebarMenu className="p-2">
@@ -92,10 +93,14 @@ export function DashboardSidebar() {
       <SidebarFooter>
          <SidebarMenu className="p-2">
            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Settings">
-                <Settings />
-                <span>Settings</span>
-              </SidebarMenuButton>
+              <Link href="/admin/settings" passHref>
+                <SidebarMenuButton asChild tooltip="Settings" isActive={pathname.startsWith('/admin/settings')}>
+                  <span>
+                    <Settings />
+                    <span>Settings</span>
+                  </span>
+                </SidebarMenuButton>
+              </Link>
            </SidebarMenuItem>
            <SidebarMenuItem>
               <Link href="/" passHref>
